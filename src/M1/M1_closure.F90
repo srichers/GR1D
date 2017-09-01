@@ -282,5 +282,12 @@ subroutine M1_closure
   enddo
   !$OMP END PARALLEL DO! end do
 
+#ifdef HAVE_MC_CLOSURE
+  ! get closure from Sedonu. Keep closure calculation above to fill in chi.
+  call calculate_MC_closure(q_M1, q_M1p, q_M1m, &
+       q_M1_extra, q_M1_extrap, q_M1_extram, &
+       eas, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, &
+       X, nt, dt, sedonu)
+#endif
+  
 end subroutine M1_closure
-
