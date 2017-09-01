@@ -64,6 +64,11 @@ ifeq ($(HAVE_LEAK_ROS),1)
 	EXTRADEPS += leakage_rosswog/leakage_rosswog.a 
 endif	
 
+ifeq ($(HAVE_MC_CLOSURE),1)
+	DEFS += -DHAVE_MC_CLOSURE
+	EXTRAOBJECTS += $(SEDONULIB) -lstdc++
+endif	
+
 ifndef NULIBDIR
 	NULIBDIR=nulibtable
 endif
