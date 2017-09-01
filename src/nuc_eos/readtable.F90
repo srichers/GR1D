@@ -7,6 +7,7 @@ subroutine readtable(eos_filename)
   use hdf5 
 
   implicit none
+  include 'mpif.h'
 
   character(*) eos_filename
 
@@ -20,15 +21,22 @@ subroutine readtable(eos_filename)
 
   real*8 amu_cgs_andi
   real*8 buffer1,buffer2,buffer3,buffer4
-  accerr=0
+  integer ID, myID, Nprocs, ierr
 
-  write(*,*) "Reading Nuclear EOS Table"
+  if(myID==0) write(*,*) "Reading Nuclear EOS Table"
+  call MPI_COMM_RANK (MPI_COMM_WORLD, myID, ierr)
+  call MPI_COMM_SIZE (MPI_COMM_WORLD, Nprocs, ierr)
+
+  do ID=0, Nprocs-1
+  if(myID==ID) then
+  !!!!!!!!!! BEGINNING OF DO LOOP (trying not to modify EVERY line in git) !!!!!!!
+  accerr=0
 
   call h5open_f(error)
 
   call h5fopen_f (trim(adjustl(eos_filename)), H5F_ACC_RDONLY_F, file_id, error)
 
-  write(6,*) trim(adjustl(eos_filename))
+  if(myID==0) write(6,*) trim(adjustl(eos_filename))
 
 ! read scalars
   dims1(1)=1
@@ -58,8 +66,10 @@ subroutine readtable(eos_filename)
      stop "Could not read EOS table file"
   endif
 
+  if(myID==0) then
   write(message,"(a25,i5,i5,i5)") "We have nrho ntemp nye: ", nrho,ntemp,nye
   write(*,*) message
+  endif
 
   allocate(alltables(nrho,ntemp,nye,nvars))
 
@@ -227,8 +237,12 @@ subroutine readtable(eos_filename)
   eos_tempmin = 10.0d0**logtemp(1)
   eos_tempmax = 10.0d0**logtemp(ntemp)
 
-  write(6,*) "Done reading eos tables"
+  if(myID==0) write(6,*) "Done reading eos tables"
 
+  !!!!!!!! END OF DO LOOP !!!!!!!!!!!!!!
+  end if
+  call MPI_barrier(MPI_COMM_WORLD, ierr)
+  end do
 
 end subroutine readtable
 

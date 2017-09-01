@@ -82,6 +82,11 @@ subroutine handle_output
   use GR1D_module
   implicit none
   
+  ! do nothing if not rank 0
+  if(myID.ne.0) then
+     return
+  end if
+
   if(dynamic_output_control) then
      call output_control
   endif

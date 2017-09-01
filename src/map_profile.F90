@@ -99,7 +99,7 @@ subroutine map_profile(lprofile_name)
 
 
   if(do_rotation) then
-     write(*,*) "Have Rotation"
+     if(myID==0) write(*,*) "Have Rotation"
   ! set up vphi
      if(GR) then
         vphi(:) = omega(:)*x1(:)
@@ -121,8 +121,10 @@ subroutine map_profile(lprofile_name)
      call eos(i,rho(i),temp(i),ye(i),eps(i),eps(i), &
           keytemp,keyerr,eosflag,eoskey,eos_rf_prec)
      if(keyerr.ne.0) then
+        if(myID==0) then
         write(*,*) keyerr
         write(*,"(i3,i5,1P10E15.6)") eoskey,i,rho(i),temp(i),ye(i),eps(i)
+        endif
         stop "problem in initial data: eos: eps"
      endif
      
@@ -248,7 +250,7 @@ subroutine map_map(point_value,point_radius0,parray,pradius,zones)
 end subroutine map_map
 
 subroutine map_limit(lprofile_name)
-  use GR1D_module, only: grid_rmax,rho_cut
+  use GR1D_module, only: grid_rmax,rho_cut,myID
   implicit none
       
   character*(*) lprofile_name
@@ -292,7 +294,7 @@ subroutine map_limit(lprofile_name)
      endif
   enddo
   
-  write(*,*) "Maximum Radius (at rho=",rho_cut,") set to: ", grid_rmax
+  if(myID==0) write(*,*) "Maximum Radius (at rho=",rho_cut,") set to: ", grid_rmax
   
   close(666)
   

@@ -13,24 +13,24 @@ subroutine collapse
   dt = 1.0d-7*time_gf
 
   if(fake_neutrinos) then
-     write(*,*) "Initializing Fake Neutrinos!"
+     if(myID==0) write(*,*) "Initializing Fake Neutrinos!"
      if (do_nupress) then
-        write(*,*) "Neutrino Pressure on"
+        if(myID==0) write(*,*) "Neutrino Pressure on"
         if (.not.do_ye_of_rho) then
            stop "Neutrino Press with No Ye_of_rho is a bad idea"
         endif
      endif
      if (do_ye_of_rho.and..not.do_yeofrhofit) then
-        write(*,*) "Using ye profile"
+        if(myID==0) write(*,*) "Using ye profile"
         call read_yeprofile
      else if (do_ye_of_rho.and.do_yeofrhofit) then
-        write(*,*) "Using ye(rho) fit formula"
+        if(myID==0) write(*,*) "Using ye(rho) fit formula"
      else
-        write(*,*) "No ye(rho) prescription"
+        if(myID==0) write(*,*) "No ye(rho) prescription"
      endif
   endif
   
-  write(6,"(A15,A60)") "Initial data: ",profile_name
+  if(myID==0) write(6,"(A15,A60)") "Initial data: ",profile_name
   
   if (do_profile_rmax) then
      call map_limit(profile_name)
@@ -42,7 +42,7 @@ subroutine collapse
   ! minimum grid spacing; does only apply if geometry = 2 & grid = log
   mindx = grid_custom_dx1*length_gf !1 km
   
-  write(*,*) "Setting up grid: ", trim(adjustl(gridtype))
+  if(myID==0) write(*,*) "Setting up grid: ", trim(adjustl(gridtype))
   call grid(xmin,xmax,mindx)
   
   if(profile_type.eq.1) then
@@ -83,10 +83,12 @@ subroutine collapse
   endif
 
   if (GR) then
+     if(myID==0) then
      write(*,*) "Using GR, totalmass_grav: ", totalmass/mass_gf, " grams"
      write(*,*) "          totalmass_bary: ", mass(n1-ghosts1+1)/mass_gf, " grams"
+     endif
   else
-     write(*,*) "Using Newtonian, totalmass_bary: ", mass(n1-ghosts1+1)/mass_gf, " grams"
+     if(myID==0) write(*,*) "Using Newtonian, totalmass_bary: ", mass(n1-ghosts1+1)/mass_gf, " grams"
   endif
 
 end subroutine collapse

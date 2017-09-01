@@ -197,6 +197,8 @@ module GR1D_module
   integer :: M1_phase2_encpl_way
   integer :: M1_phase3_encpl_way
 
+  !MPI variables
+  integer :: myID, Nprocs
 
   ! all evolution variables: 3 timelevels; p suffix: previous timelevels
   ! pp suffix: previous previous timelevel
