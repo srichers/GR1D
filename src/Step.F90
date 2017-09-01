@@ -230,12 +230,14 @@ subroutine Step(dts)
            !    for which the EOS was not really designed. The
            !    problems seen here should not show up for leakage/ye_of_rho
            !    runs.
+           if(myID==0) then
            write(6,*) "############################################"
            write(6,*) "EOS PROBLEM in Step:"
            write(6,*) "timestep number: ",nt
            write(6,"(i4,1P10E15.6)") i,x1(i),rho(i)/rho_gf,temp(i),eps(i)/eps_gf,ye(i)
            write(6,*) "keyerr: ",keyerr
            call flush(6)
+           endif
            if(.not.fake_neutrinos.and..not.do_leak_ros) then
               ! let's pump in a tiny bit of energy < 0.01*epsin_orig
               itc = 0
@@ -252,8 +254,10 @@ subroutine Step(dts)
                       eosdummy(11),eosdummy(12),eosdummy(13),nuchem(i), &
                       keytemp,keyerr,eoskey,eos_rf_prec)
               enddo
+              if(myID==0) then
               write(6,*) itc,keyerr
               write(6,*) "############################################"
+              endif
               if(keyerr.ne.0) then
                  stop "problem in reconstruct: Step, could not be fixed."
               endif

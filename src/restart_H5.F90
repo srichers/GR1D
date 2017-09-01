@@ -25,6 +25,10 @@ subroutine restart_output_h5
   
   integer(HSIZE_T) dims1(1), dims2(2), dims3(3), dims4(4)
 
+  ! only ouput if rank 0
+  if(myID==0) then
+     return
+  end if
 
   !This routine outputs all the necessary variables needed to restart from any given point in time in HDF5 format
   sw1 = 0
@@ -696,6 +700,7 @@ subroutine restart_init_h5
   use leakage_rosswog, only : leak_tau,have_old_tau
 #endif
   implicit none
+  include 'mpif.h'
 
   real*8 temp_time
   integer sw1,sw2,sw3,sw4,sw7,sw8,sw9,sw10,sw11,b1,ibuffer,lbuffer
@@ -703,14 +708,20 @@ subroutine restart_init_h5
 
   integer :: tint, dtint, tdumpint, tmsint
   real*8 :: ttemp
-  
+
   integer error,rank,cerror
   integer(HID_T) file_id,dset_id,dspace_id,aspace_id,attr_id
   integer(HID_T) atype_id,i,j
   integer(SIZE_T) attrlen
+  integer ID,ierr
   
   integer(HSIZE_T) dims1(1), dims2(2), dims3(3), dims4(4)
 
+  ! serialize file access. For some reason Blue Waters locks the files.
+  do ID = 0, Nprocs-1
+  if(myID==ID) then
+
+  !!!!!! BEGINNING OF DO LOOP (not indented so I don't change EVERY line in git) !!!
   cerror = 0
 
   sw1 = 0
@@ -1154,5 +1165,10 @@ subroutine restart_init_h5
 
   call h5fclose_f(file_id,error)
   call h5close_f(error)
+
+  !!! END DO LOOP !!!!!!!!!!!!!!!!!!!!!!!!
+  end if
+  call MPI_barrier(MPI_COMM_WORLD, ierr)
+  end do
 
 end subroutine restart_init_h5

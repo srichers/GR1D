@@ -12,7 +12,7 @@ subroutine start
   character(len=128) rmstring
   logical :: outdirthere
 
-  write(*,*) "Parsing input file..."
+  if(myID==0) write(*,*) "Parsing input file..."
   !this time to get details of arrays sizes etc
   call input_parser
 
@@ -40,10 +40,12 @@ subroutine start
 
   !this time to set all variables requested values
   call input_parser
+  if(myID==0) then
   write(*,*) "Your job name: ", trim(adjustl(jobname))
   write(*,*) "Using ", radial_zones, " radial zones and ", ghosts1, " ghosts zones"
   write(*,*) "Using ",trim(adjustl(reconstruction_method))," reconstruction"
   write(*,*) "Using ",trim(adjustl(flux_type)), " for hydro"
+  endif
 
   ! check if output directory exists
 #if __INTEL_COMPILER
@@ -52,8 +54,10 @@ subroutine start
   inquire(file=trim(adjustl(outdir)),exist=outdirthere)
 #endif
   if(.not.outdirthere) then
+     if(myID==0) then
      write(6,*) "*** Output directory does not exist! Please mkdir the output directory!"
      write(6,*) trim(adjustl(outdir))
+     endif
      stop "Aborting!"
   endif
 
@@ -69,25 +73,25 @@ subroutine start
 
   !Collapse specific setups
   if(initial_data.eq."Collapse") then
-     write(*,*) "Finding envelope binding energy"
+     if(myID==0) write(*,*) "Finding envelope binding energy"
      call map_envelope_binding_energy(profile_name)
-     write(*,*) "Finding accretion radii"
+     if(myID==0) write(*,*) "Finding accretion radii"
      call findaccretionradii
   endif
 
   if(reconstruction_method.eq.'ppm'.or.M1_phase1_reconstruction.eq.'ppm' &
        .or.M1_phase2_reconstruction.eq.'ppm'.or.M1_phase3_reconstruction.eq.'ppm') then
-     write(*,*) "Setting up PPM coefficients"
+     if(myID==0) write(*,*) "Setting up PPM coefficients"
      call ppm_coefficients
   endif
 
   !setup dynamic output control
   if(dynamic_output_control) then
-     call output_control
+     if(myID==0) call output_control
   endif
 
   if(do_M1) then
-     write(*,*) "Setting up M1 transport"
+     if(myID==0) write(*,*) "Setting up M1 transport"
      if (M1_control_flag) then
         call M1_control
      endif
@@ -113,7 +117,7 @@ subroutine start
 
   !if doing restart here is where we call to read in file.
   if (do_restart) then
-     write(*,*) "Doing restart: ", restart_file_name
+     if(myID==0) write(*,*) "Doing restart: ", restart_file_name
      call restart_init_h5
      !warning, this will adjust out put times
      if (force_restart_output) then

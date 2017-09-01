@@ -13,8 +13,13 @@ subroutine M1_init
   use nulibtable
 
   implicit none
+  include 'mpif.h'
 
   integer i
+  integer myID, Nprocs, ierr
+
+  call MPI_COMM_RANK (MPI_COMM_WORLD, myID, ierr)
+  call MPI_COMM_SIZE (MPI_COMM_WORLD, Nprocs, ierr)
 
   call nulibtable_reader(opacity_table,include_nes_kernels,include_epannihil_kernels)
   
@@ -67,11 +72,11 @@ subroutine M1_init
   enddo
 
   if (v_order.eq.0.or.v_order.eq.-1) then
-     write(*,*) "Velocity order is:",v_order," (-1 for all orders)"
+     if(myID==0) write(*,*) "Velocity order is:",v_order," (-1 for all orders)"
   else
      stop "implement v_order"
   endif
-  write(*,*) "M1_init: extract radii at", x1(M1_imaxradii)/length_gf, "index:", M1_imaxradii, "of", n1
+  if(myID==0) write(*,*) "M1_init: extract radii at", x1(M1_imaxradii)/length_gf, "index:", M1_imaxradii, "of", n1
 
   !conversion from energy (momentum) density to angle integrated distribution function (*\mu)
   M1_moment_to_distro(:) =  (2.0d0*pi*hbarc_mevcm)**3 / &
