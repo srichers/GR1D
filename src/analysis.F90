@@ -312,7 +312,7 @@ subroutine map_envelope_binding_energy(lprofile_name)
   !this is the binding energy of the envelope not included in our grid
 
   use GR1D_module, only : mgrav, n1,ghosts1,grid_rmax,binding_energy_envelope, &
-       energy_gf,mass_gf,rho_cut,rho_gf,rho,length_gf
+       energy_gf,mass_gf,rho_cut,rho_gf,rho,length_gf,myID
   implicit none
   
   character*(*) lprofile_name
@@ -381,7 +381,7 @@ subroutine map_envelope_binding_energy(lprofile_name)
 
   binding_energy_envelope = binding_energy_total
 
-  write(*,*) "Binding energy of envelope (ergs):", binding_energy_envelope/energy_gf
+  if(myID==0) write(*,*) "Binding energy of envelope (ergs):", binding_energy_envelope/energy_gf
 
   deallocate(pradius,pmass)
   deallocate(prho,ppress)
