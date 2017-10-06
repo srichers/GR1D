@@ -8,6 +8,7 @@ subroutine restart_output_h5
   use leakage_rosswog, only : leak_tau, have_old_tau
 #endif
   implicit none
+  include 'mpif.h'
 
   integer i,j
   double precision x1_16,D_16,S_16,T_16,press_16,X_16,Y_16,temp_16
@@ -26,7 +27,7 @@ subroutine restart_output_h5
   integer(HSIZE_T) dims1(1), dims2(2), dims3(3), dims4(4)
 
   ! only ouput if rank 0
-  if(myID==0) then
+  if(myID.ne.0) then
      return
   end if
 
@@ -654,7 +655,7 @@ subroutine restart_output_h5
 
   if (cerror.ne.0) then
      write(*,*) "We have errors on writing HDF5 restart file", cerror
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD,cerror)
   endif
 
   call h5fclose_f(file_id,error)
@@ -737,13 +738,15 @@ subroutine restart_init_h5
   !This routine reloads all the variables
   call h5open_f(error)
   if (error.ne.0) then
-     stop "Error reading in restart file"
+     write(*,*) "Error reading in restart file"
+     call MPI_ABORT(MPI_COMM_WORLD,ierr)
   endif
 
   call h5fopen_f(trim(adjustl(restart_file_name)),H5F_ACC_RDONLY_F&
        &,file_id,error)
   if (error.ne.0) then
-     stop "Error reading in restart file"
+     write(*,*) "Error reading in restart file"
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   !read scalars
@@ -838,35 +841,35 @@ subroutine restart_init_h5
   if (do_nupress) lbuffer = 1
   if (sw4.ne.lbuffer) then
      write(*,*) "In Restart: old do_nupress =",sw4," current do_nupress =",lbuffer
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
   
   lbuffer = 0
   if (GR) lbuffer = 1
   if (sw7.ne.lbuffer) then
      write(*,*) "In Restart: old GR =",sw7," current GR =",lbuffer
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   lbuffer = 0
   if (fake_neutrinos) lbuffer = 1
   if (sw8.ne.lbuffer) then
      write(*,*) "In Restart: old fake_neutrinos =",sw8," current fake_neutrinos =",lbuffer
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   lbuffer = 0
   if (do_rotation) lbuffer = 1
   if (sw10.ne.lbuffer) then
      write(*,*) "In Restart: old do_rotation =",sw10," current do_rotation =",lbuffer
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   lbuffer = 0
   if (do_M1) lbuffer = 1
   if (sw11.ne.lbuffer) then
      write(*,*) "In Restart: old do_M1 =",sw11," current do_M1 =",lbuffer
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   call h5dopen_f(file_id,"eoskey",dset_id,error)
@@ -876,7 +879,7 @@ subroutine restart_init_h5
 
   if (ibuffer.ne.eoskey) then
      write(*,*) "In Restart: old eoskey =",ibuffer," current eoskey =",eoskey
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   call h5dopen_f(file_id,"n1",dset_id,error)
@@ -886,7 +889,7 @@ subroutine restart_init_h5
 
   if (ibuffer.ne.n1) then
      write(*,*) "In Restart: old n1 =",ibuffer," current n1 =",n1
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, ierr)
   endif
 
   if (do_M1) then
@@ -901,28 +904,40 @@ subroutine restart_init_h5
      call h5dclose_f(dset_id,error)
      cerror = cerror + error
      
-     if (ttemp.ne.M1_maxradii) stop "You have a different extraction radius"
+     if (ttemp.ne.M1_maxradii) then
+        write(*,*) "You have a different extraction radius"
+        call MPI_ABORT(MPI_COMM_WORLD, ierr)
+  endif
 
      call h5dopen_f(file_id,"number_species",dset_id,error)
      call h5dread_f(dset_id,H5T_NATIVE_INTEGER,ibuffer,dims1,error)
      call h5dclose_f(dset_id,error)
      cerror = cerror + error
 
-     if (ibuffer.ne.number_species) stop "You have a different number of species than restart file"
+     if (ibuffer.ne.number_species) then
+        write(*,*) "You have a different number of species than restart file"
+        call MPI_ABORT(MPI_COMM_WORLD, ierr)
+     endif
 
      call h5dopen_f(file_id,"number_groups",dset_id,error)
      call h5dread_f(dset_id,H5T_NATIVE_INTEGER,ibuffer,dims1,error)
      call h5dclose_f(dset_id,error)
      cerror = cerror + error
 
-     if (ibuffer.ne.number_groups) stop "You have a different number of energy groups than restart file"
+     if (ibuffer.ne.number_groups) then
+        write(*,*) "You have a different number of energy groups than restart file"
+        call MPI_ABORT(MPI_COMM_WORLD, ierr)
+     endif
      
      call h5dopen_f(file_id,"number_eas",dset_id,error)
      call h5dread_f(dset_id,H5T_NATIVE_INTEGER,ibuffer,dims1,error)
      call h5dclose_f(dset_id,error)
      cerror = cerror + error
 
-     if (ibuffer.ne.number_eas) stop "You have a different number of eas variables than restart file"
+     if (ibuffer.ne.number_eas) then
+        write(*,*) "You have a different number of eas variables than restart file"
+        call MPI_ABORT(MPI_COMM_WORLD, ierr)
+     endif
 
   endif
 
@@ -1122,7 +1137,11 @@ subroutine restart_init_h5
      dims2(1) = n1
      dims2(2) = 4
      
-     if (dims2(2).ne.n_cons) stop "add other conservative to neutrinos, and restart file"
+     if (dims2(2).ne.n_cons) then
+        write(*,*) "add other conservative to neutrinos, and restart file"
+        call MPI_ABORT(MPI_COMM_WORLD, ierr)
+     endif
+
 
      call h5dopen_f(file_id, "M1_matter_source", dset_id, error)
      call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, M1_matter_source, dims2, error)
@@ -1160,7 +1179,7 @@ subroutine restart_init_h5
 
   if (cerror.ne.0) then
      write(*,*) "Error(s) reading in HDF5 restart file", cerror
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD, cerror)
   endif
 
   call h5fclose_f(file_id,error)
