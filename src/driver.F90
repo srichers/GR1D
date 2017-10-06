@@ -81,6 +81,8 @@ subroutine handle_output
   use timers
   use GR1D_module
   implicit none
+  include 'mpif.h'
+  integer errorcode, ierr
   
   ! do nothing if not rank 0
   if(myID.ne.0) then
@@ -100,7 +102,7 @@ subroutine handle_output
      call output_all(2)
      call output_timers
      call restart_output_h5
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD,errorcode,ierr)
   endif
   
   if (time.ge.tend) then
@@ -112,7 +114,7 @@ subroutine handle_output
      open(unit=666,file=trim(adjustl(outdir))//"/done",status="unknown")
      write(666,*) 1
      close(666)
-     stop
+     call MPI_ABORT(MPI_COMM_WORLD,errorcode,ierr)
   endif
 
   !!   Output/Checking
