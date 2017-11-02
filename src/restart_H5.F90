@@ -651,6 +651,15 @@ subroutine restart_output_h5
      call h5sclose_f(dspace_id, error)
      cerror = cerror + error
 
+     dims4(4) = 4
+     call h5screate_simple_f(rank, dims4, dspace_id, error)
+     call h5dcreate_f(file_id, "q_M1_extra", H5T_NATIVE_DOUBLE, dspace_id,&
+          & dset_id, error)
+     call h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, q_M1_extra, dims4, error)
+     call h5dclose_f(dset_id, error)
+     call h5sclose_f(dspace_id, error)
+     cerror = cerror + error
+
   endif
 
   if (cerror.ne.0) then
@@ -1174,6 +1183,12 @@ subroutine restart_init_h5
      call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, eas, dims4, error)
      call h5dclose_f(dset_id,error) 
      cerror = cerror + error
+
+!     dims4(4) = 4
+!     call h5dopen_f(file_id, "q_M1_extra", dset_id, error)
+!     call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, q_M1_extra, dims4, error)
+!     call h5dclose_f(dset_id,error) 
+!     cerror = cerror + error
 
   endif
 
