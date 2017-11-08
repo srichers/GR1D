@@ -107,6 +107,11 @@ subroutine allocate_vars
   allocate(M1_moment_to_distro(number_groups))
   allocate(M1_moment_to_distro_inverse(number_groups))
 
+  allocate(q_M1_2mom(n1,number_species,number_groups,3)) !conserved variables
+  allocate(q_M1p_2mom(n1,number_species,number_groups,3,2)) !conserved variables
+  allocate(q_M1m_2mom(n1,number_species,number_groups,3,2)) !conserved variables
+  allocate(q_M1_extra_2mom(n1,number_species,number_groups,4)) !closure variables
+
   allocate(sqrt_gamma(n1))
 
   allocate(flux_diff(n1,n_cons))

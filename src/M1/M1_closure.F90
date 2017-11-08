@@ -28,14 +28,14 @@ subroutine M1_closure
   justshyofone = 0.9999999999d0
 
   if (M1_testcase_number.eq.3) then
-     q_M1m(:,:,:,3,1) = justshyofone !P_{rr}/E
+     q_M1m_2mom(:,:,:,3,1) = justshyofone !P_{rr}/E
      q_M1_extram(:,:,:,1,1) = justshyofone
-     q_M1(:,:,:,3) = justshyofone !P_{rr}/E
-     q_M1_extra(:,:,:,1) =0.0d0 !P_{phi}^{phi}/E,P_{\theta}^{\theta}/E
-     q_M1_extra(:,:,:,4) = justshyofone
-     q_M1_extra(:,:,:,2) = justshyofone*q_M1(:,:,:,2)
-     q_M1_extra(:,:,:,3) = 0.0d0
-     q_M1p(:,:,:,3,1) = justshyofone !P_{rr}/E
+     q_M1_2mom(:,:,:,3) = justshyofone !P_{rr}/E
+     q_M1_extra_2mom(:,:,:,1) =0.0d0 !P_{phi}^{phi}/E,P_{\theta}^{\theta}/E
+     q_M1_extra_2mom(:,:,:,4) = justshyofone
+     q_M1_extra_2mom(:,:,:,2) = justshyofone*q_M1(:,:,:,2)
+     q_M1_extra_2mom(:,:,:,3) = 0.0d0
+     q_M1p_2mom(:,:,:,3,1) = justshyofone !P_{rr}/E
      q_M1_extrap(:,:,:,1,1) = justshyofone
      return
   endif
@@ -248,7 +248,7 @@ subroutine M1_closure
               enddo
               
               if (h.eq.1) then !minus state
-                 q_M1m(k,i,j,3,1) = oneM1eddy_guess !P_{rr}/E
+                 q_M1m_2mom(k,i,j,3,1) = oneM1eddy_guess !P_{rr}/E
                  q_M1_extram(k,i,j,1,1) = chi
               else if (h.eq.2) then !middle state
                  if (Hup(2).eq.0.0d0) then
@@ -265,15 +265,15 @@ subroutine M1_closure
                  Wdownfupfr = oneW*onev*invX*3.0d0*(1.0d0-chi)*0.5d0*localJ*onethird + & 
                       Ldownfupfr !cardall B18
 
-                 q_M1(k,i,j,3) = oneM1eddy_guess !P_{rr}/E
-                 q_M1_extra(k,i,j,1) = 3.0d0*(1.0d0-chi)*0.5d0* &
+                 q_M1_2mom(k,i,j,3) = oneM1eddy_guess !P_{rr}/E
+                 q_M1_extra_2mom(k,i,j,1) = 3.0d0*(1.0d0-chi)*0.5d0* &
                       localJ*onethird/oneM1en !P_{phi}^{phi}/E,P_{\theta}^{\theta}/E,
-                                              !note oneM1en is 1
-                 q_M1_extra(k,i,j,4) = chi
-                 q_M1_extra(k,i,j,2) = Wuprrr*q_M1(k,i,j,1)
-                 q_M1_extra(k,i,j,3) = Wdownfupfr*q_M1(k,i,j,1)
+                 !note oneM1en is 1
+                 q_M1_extra_2mom(k,i,j,4) = chi
+                 q_M1_extra_2mom(k,i,j,2) = Wuprrr*q_M1(k,i,j,1)
+                 q_M1_extra_2mom(k,i,j,3) = Wdownfupfr*q_M1(k,i,j,1)
               else if (h.eq.3) then !plus state
-                 q_M1p(k,i,j,3,1) = oneM1eddy_guess !P_{rr}/E
+                 q_M1p_2mom(k,i,j,3,1) = oneM1eddy_guess !P_{rr}/E
                  q_M1_extrap(k,i,j,1,1) = chi
               endif
            enddo
@@ -284,10 +284,15 @@ subroutine M1_closure
 
 #ifdef HAVE_MC_CLOSURE
   ! get closure from Sedonu. Keep closure calculation above to fill in chi.
-  call calculate_MC_closure(q_M1, q_M1p, q_M1m, &
-       q_M1_extra, q_M1_extrap, q_M1_extram, &
+  call calculate_MC_closure(q_M1, q_M1p, q_M1m, q_M1_extra, &
+       q_M1_2mom, q_M1p_2mom, q_M1m_2mom, q_M1_extra_2mom, &
        eas, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, &
-       X, nt, dt, sedonu)
+       X, nt, dt, shock_radius/length_gf, sedonu)
+#else
+  q_M1(:,:,:,3)          = q_M1_2mom(:,:,:,3)
+  q_M1p(:,:,:,3,1)       = q_M1p_2mom(:,:,:,3,1)
+  q_M1m(:,:,:,3,1)       = q_M1m_2mom(:,:,:,3,1)
+  q_M1_extra(:,:,:,:)    = q_M1_extra_2mom(:,:,:,:)
 #endif
   
 end subroutine M1_closure
