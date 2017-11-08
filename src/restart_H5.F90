@@ -1184,11 +1184,11 @@ subroutine restart_init_h5
      call h5dclose_f(dset_id,error) 
      cerror = cerror + error
 
-!     dims4(4) = 4
-!     call h5dopen_f(file_id, "q_M1_extra", dset_id, error)
-!     call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, q_M1_extra, dims4, error)
-!     call h5dclose_f(dset_id,error) 
-!     cerror = cerror + error
+     dims4(4) = 4
+     call h5dopen_f(file_id, "q_M1_extra", dset_id, error)
+     call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, q_M1_extra, dims4, error)
+     call h5dclose_f(dset_id,error) 
+     cerror = cerror + error
 
   endif
 
