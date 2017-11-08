@@ -290,6 +290,13 @@ module GR1D_module
   real*8,allocatable,save :: q_M1_extram(:,:,:,:,:) !extra moments
   !reconstructed,
   !minus
+
+  !temporary storage for use during closure computation
+  real*8,allocatable,save ::       q_M1_2mom(:,:,:,:)
+  real*8,allocatable,save ::      q_M1p_2mom(:,:,:,:,:)
+  real*8,allocatable,save ::      q_M1m_2mom(:,:,:,:,:)
+  real*8,allocatable,save :: q_M1_extra_2mom(:,:,:,:)
+
   real*8,allocatable,save :: q_M1_old(:,:,:,:) !energy density, flux,
   !and pressure tensor
   !(for each species and
