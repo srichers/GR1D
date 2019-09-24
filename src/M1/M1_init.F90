@@ -9,7 +9,7 @@ subroutine M1_init
        hbarc_mevcm,M1_testcase_number,v_order,include_nes_kernels, &
        M1_moment_to_distro_inverse,nulib_kernel_gf,number_species_to_evolve, &
        include_epannihil_kernels,M1_extractradii,M1_iextractradii, sedonu, v1, &
-       vphi1, include_scattering_delta, X
+       vphi1, include_scattering_delta, X, alp
   use nulibtable
 
   implicit none
@@ -96,7 +96,8 @@ subroutine M1_init
   call M1_updateeas
 
 #ifdef HAVE_MC_CLOSURE
-  call initialize_gr1d_sedonu(x1i/length_gf, n1,M1_imaxradii, ghosts1, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, X, sedonu)
+  call initialize_gr1d_sedonu(x1i/length_gf, n1,M1_imaxradii, ghosts1, &
+       rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, X, alp, sedonu)
 #endif
   
 end subroutine M1_init

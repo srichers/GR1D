@@ -287,7 +287,7 @@ subroutine M1_closure
   call calculate_MC_closure(q_M1, q_M1p, q_M1m, q_M1_extra, &
        q_M1_2mom, q_M1p_2mom, q_M1m_2mom, q_M1_extra_2mom, &
        eas, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, &
-       X, nt, dt, shock_radius/length_gf, sedonu)
+       X, alp, nt, dt, shock_radius/length_gf, sedonu)
 #else
   q_M1(:,:,:,3)          = q_M1_2mom(:,:,:,3)
   q_M1p(:,:,:,3,1)       = q_M1p_2mom(:,:,:,3,1)
