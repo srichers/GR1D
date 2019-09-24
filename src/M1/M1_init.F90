@@ -9,7 +9,7 @@ subroutine M1_init
        hbarc_mevcm,M1_testcase_number,v_order,include_nes_kernels, &
        M1_moment_to_distro_inverse,nulib_kernel_gf,number_species_to_evolve, &
        include_epannihil_kernels,M1_extractradii,M1_iextractradii, sedonu, v1, &
-       vphi1
+       vphi1, include_scattering_delta, X
   use nulibtable
 
   implicit none
@@ -21,7 +21,7 @@ subroutine M1_init
   call MPI_COMM_RANK (MPI_COMM_WORLD, myID, ierr)
   call MPI_COMM_SIZE (MPI_COMM_WORLD, Nprocs, ierr)
 
-  call nulibtable_reader(opacity_table,include_nes_kernels,include_epannihil_kernels)
+  call nulibtable_reader(opacity_table,include_nes_kernels,include_epannihil_kernels,include_scattering_delta)
   
   !change units of emissivities, opacities, energies and inverse
   !energies to code units, then we only have to do it once these are
@@ -49,6 +49,9 @@ subroutine M1_init
   if (include_epannihil_kernels) then
      nulibtable_epannihiltable_Phi0 = log10(10.0d0**nulibtable_epannihiltable_Phi0*nulib_kernel_gf)
      !Phi1 is stored as the ratio of Phi1/Phi0, so no log, no units
+  endif
+  if (include_scattering_delta) then
+     STOP "Anisotropic nucleon scattering not implemented in GR1D yet!"
   endif
 
   !convert energies to reduced units to save time, note nulib_ewidth is NOT converted
@@ -93,7 +96,7 @@ subroutine M1_init
   call M1_updateeas
 
 #ifdef HAVE_MC_CLOSURE
-  call initialize_gr1d_sedonu(x1i/length_gf, n1,M1_imaxradii, ghosts1, sedonu)
+  call initialize_gr1d_sedonu(x1i/length_gf, n1,M1_imaxradii, ghosts1, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, X, sedonu)
 #endif
   
 end subroutine M1_init

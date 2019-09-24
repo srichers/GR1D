@@ -51,6 +51,7 @@ subroutine initialize_vars
   number_eas = 0
   include_epannihil_kernels = .false.
   include_nes_kernels = .false.
+  include_scattering_delta = .false.
   include_Ielectron_exp = .false.
   include_Ielectron_imp = .false.
   include_energycoupling_exp = .false.
