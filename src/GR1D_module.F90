@@ -164,6 +164,7 @@ module GR1D_module
   integer :: number_eas
   logical :: include_epannihil_kernels
   logical :: include_nes_kernels
+  logical :: include_scattering_delta
   logical :: include_Ielectron_exp
   logical :: include_Ielectron_imp
   logical :: include_energycoupling_exp

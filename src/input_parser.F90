@@ -151,6 +151,7 @@ subroutine input_parser
      call get_integer_parameter('number_eas',number_eas)
      call get_logical_parameter('include_epannihil_kernels',include_epannihil_kernels)
      call get_logical_parameter('include_nes_kernels',include_nes_kernels)
+     call get_logical_parameter('include_scattering_delta',include_scattering_delta)
      call get_integer_parameter('nes_evolution_type',tempint)
      if (tempint.eq.0) then
         include_Ielectron_exp = .false.
