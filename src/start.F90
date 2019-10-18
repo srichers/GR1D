@@ -62,11 +62,13 @@ subroutine start
   endif
 
   ! wipe output directory
+  if(myID==0) then
   rmstring="rm -rf "//trim(adjustl(outdir))//"/*"
   call system(rmstring)
   ! copy parameter file
   cpstring="cp parameters "//trim(adjustl(outdir))
   call system(cpstring)
+  endif
 
   !setting up initial data
   call problem
