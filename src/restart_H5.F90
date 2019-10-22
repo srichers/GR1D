@@ -315,7 +315,10 @@ subroutine restart_output_h5
      call h5dclose_f(dset_id, error)
      call h5sclose_f(dspace_id, error)
      cerror = cerror + error
-  
+     
+#ifdef HAVE_MC_CLOSURE
+     call write_sedonu_closure(file_id)
+#endif
   endif
 
 !1D arrays
@@ -1190,6 +1193,9 @@ subroutine restart_init_h5
      call h5dclose_f(dset_id,error) 
      cerror = cerror + error
 
+#ifdef HAVE_MC_CLOSURE
+     call read_sedonu_closure(file_id)
+#endif
   endif
 
   if (cerror.ne.0) then
