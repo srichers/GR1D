@@ -22,7 +22,7 @@ subroutine M1_closure
 
   integer :: h,k,i,j,ii,jj
   integer :: count
-  real*8 :: justshyofone
+  real*8 :: justshyofone, MC_velocity_factor
   
   tol = 1.0d-8 !tolerance for convergence
   justshyofone = 0.9999999999d0
@@ -284,9 +284,15 @@ subroutine M1_closure
 
 #ifdef HAVE_MC_CLOSURE
   ! get closure from Sedonu. Keep closure calculation above to fill in chi.
+  if(v_order==0) then
+     MC_velocity_factor = 0
+  else
+     MC_velocity_factor = clite
+  endif
+   
   call calculate_MC_closure(q_M1, q_M1p, q_M1m, q_M1_extra, &
        q_M1_2mom, q_M1p_2mom, q_M1m_2mom, q_M1_extra_2mom, &
-       eas, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*clite, &
+       eas, rho/rho_gf, temp*temp_mev_to_kelvin, ye, v1*MC_velocity_factor, &
        X, alp, nt, dt, shock_radius/length_gf, sedonu)
 #else
   q_M1(:,:,:,3)          = q_M1_2mom(:,:,:,3)
