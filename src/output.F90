@@ -45,7 +45,13 @@ subroutine output_all(modeflag)
   real*8 eddingtonfactor_enweighted(n1,number_species)
   real*8 eddingtonfactor_fluxweighted(n1,number_species)
   real*8 total_nu_energy,total_matter_energy,total_energy
-  
+
+  ! (r, species, eddfac/thirdmom)
+  real*8 tmp_error
+  real*8 closureerror_enweighted(n1,number_species,2)
+  real*8 closureerror_fluxweighted(n1,number_species,2)
+  real*8 closureerror_max(n1,number_species,2)
+
   integer k,j
 
   real*8 tau(n1,2) !scattering+absorption/absorption
@@ -227,6 +233,7 @@ subroutine output_all(modeflag)
         fluxfactor_fluxweighted = 0.0d0
         eddingtonfactor_enweighted = 0.0d0
         eddingtonfactor_fluxweighted = 0.0d0
+
         do k=1,number_species
            do i=ghosts1+1,M1_imaxradii
               do j=1,number_groups
@@ -234,6 +241,7 @@ subroutine output_all(modeflag)
                       + q_M1(i,k,j,1)*q_M1(i,k,j,2)/q_M1(i,k,j,1)
                  fluxfactor_fluxweighted(i,k) = fluxfactor_fluxweighted(i,k) &
                       + q_M1(i,k,j,2)*q_M1(i,k,j,2)/q_M1(i,k,j,1)
+
                  eddingtonfactor_enweighted(i,k) = eddingtonfactor_enweighted(i,k) &
                       + q_M1(i,k,j,1)*q_M1(i,k,j,3)
                  eddingtonfactor_fluxweighted(i,k) = eddingtonfactor_fluxweighted(i,k) &
@@ -278,6 +286,85 @@ subroutine output_all(modeflag)
         filename = trim(adjustl(outdir))//"/M1_eddingtonfactor_fluxweighted_nux.xg"
         if (.not.small_output) call output_single(eddingtonfactor_fluxweighted(:,3),filename)
 
+#ifdef HAVE_MC_CLOSURE
+        if (.not.small_output) then
+           closureerror_enweighted = 0.0d0
+           closureerror_fluxweighted = 0.0d0
+           closureerror_max = 0.0d0
+           
+           do k=1,number_species
+              do i=ghosts1+1,M1_imaxradii
+                 do j=1,number_groups
+                    tmp_error = (q_M1(i,k,j,3)-q_M1_2mom(i,k,j,3))
+                    closureerror_enweighted(i,k,1) = closureerror_enweighted(i,k,1) &
+                         + q_M1(i,k,j,1) * tmp_error
+                    closureerror_fluxweighted(i,k,1) = closureerror_fluxweighted(i,k,1) &
+                         + q_M1(i,k,j,2) * tmp_error
+                    if(abs(tmp_error) > closureerror_max(i,k,1)) then
+                       closureerror_max(i,k,1) = tmp_error
+                    endif
+                    
+                    tmp_error = (q_M1_extra(k,i,j,2)-q_M1_extra_2mom(k,i,j,2))/q_M1(i,k,j,1)
+                    closureerror_enweighted(i,k,2) = closureerror_enweighted(i,k,2) &
+                         + q_M1(i,k,j,1) * tmp_error
+                    closureerror_fluxweighted(i,k,2) = closureerror_fluxweighted(i,k,2) &
+                         + q_M1(i,k,j,2) * tmp_error
+                    if(abs(tmp_error) > closureerror_max(i,k,2)) then
+                       closureerror_max(i,k,2) = tmp_error
+                    endif
+                    
+                 enddo
+                 closureerror_enweighted(i,k,:) = closureerror_enweighted(i,k,:) & 
+                      / sum(q_M1(i,k,:,1))
+                 closureerror_fluxweighted(i,k,:) = closureerror_fluxweighted(i,k,:) &
+                      / sum(q_M1(i,k,:,2))
+              enddo
+           enddo
+
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_enweighted_nue.xg"
+           call output_single(closureerror_enweighted(:,1,1),filename)
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_enweighted_anue.xg"
+           call output_single(closureerror_enweighted(:,2,1),filename)
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_enweighted_nux.xg"
+           call output_single(closureerror_enweighted(:,3,1),filename)
+           
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_fluxweighted_nue.xg"
+           call output_single(closureerror_fluxweighted(:,1,1),filename)
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_fluxweighted_anue.xg"
+           call output_single(closureerror_fluxweighted(:,2,1),filename)
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_fluxweighted_nux.xg"
+           call output_single(closureerror_fluxweighted(:,3,1),filename)
+           
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_max_nue.xg"
+           call output_single(closureerror_max(:,1,1),filename)
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_max_anue.xg"
+           call output_single(closureerror_max(:,2,1),filename)
+           filename = trim(adjustl(outdir))//"/M1_eddingtonfactorerror_max_nux.xg"
+           call output_single(closureerror_max(:,3,1),filename)
+
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_enweighted_nue.xg"
+           call output_single(closureerror_enweighted(:,1,2),filename)
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_enweighted_anue.xg"
+           call output_single(closureerror_enweighted(:,2,2),filename)
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_enweighted_nux.xg"
+           call output_single(closureerror_enweighted(:,3,2),filename)
+           
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_fluxweighted_nue.xg"
+           call output_single(closureerror_fluxweighted(:,1,2),filename)
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_fluxweighted_anue.xg"
+           call output_single(closureerror_fluxweighted(:,2,2),filename)
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_fluxweighted_nux.xg"
+           call output_single(closureerror_fluxweighted(:,3,2),filename)
+           
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_max_nue.xg"
+           call output_single(closureerror_max(:,1,2),filename)
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_max_anue.xg"
+           call output_single(closureerror_max(:,2,2),filename)
+           filename = trim(adjustl(outdir))//"/M1_rrheatfactorerror_max_nux.xg"
+           call output_single(closureerror_max(:,3,2),filename)
+        endif
+#endif
+        
         filename = trim(adjustl(outdir))//"/dyedt_neutrino.xg"
         if (.not.small_output) call output_single(dyedt_neutrino*time_gf,filename)
 
